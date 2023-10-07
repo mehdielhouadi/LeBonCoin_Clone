@@ -2,7 +2,6 @@ package com.Clone.LeBonCoin.Service;
 
 import com.Clone.LeBonCoin.Entity.Announcement;
 import com.Clone.LeBonCoin.Entity.Role;
-import com.Clone.LeBonCoin.Entity.RoleEnum;
 import com.Clone.LeBonCoin.Entity.Visitor;
 import com.Clone.LeBonCoin.Repository.VisitorRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,7 @@ public class VisitorService {
     public boolean isAdmin(Visitor v){
         boolean isVisitorAdmin = false;
         for(Role role : visitorRepo.findById(v.getId()).orElseThrow().getRoles()){
-            if(role.getRole() == RoleEnum.ADMIN){
+            if(role.getRole() == "ADMIN"){
                 isVisitorAdmin = true;
             }
         }
@@ -31,7 +30,7 @@ public class VisitorService {
     }
 
     public void makeAdmin(Visitor v){
-        v.getRoles().add(new Role(RoleEnum.ADMIN));
+        v.getRoles().add(new Role("ADMIN"));
     }
 
     public void createAnnouncement(int userId, Announcement ann){

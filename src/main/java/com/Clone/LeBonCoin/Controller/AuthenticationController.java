@@ -4,7 +4,7 @@ import com.Clone.LeBonCoin.Entity.*;
 import com.Clone.LeBonCoin.Repository.VisitorRepo;
 import com.Clone.LeBonCoin.Service.VisitorService;
 import io.jsonwebtoken.Jwts;
-import org.apache.commons.codec.EncoderException;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,21 +26,18 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    public void CreateAccount(@RequestBody Visitor v) throws EncoderException {
+    public void CreateAccount(@RequestBody Visitor v) {
         String encodedPassword = securityUtils.encryptPassword(v.getPassword());
         v.setPassword( encodedPassword );
-        Set<Role> roles = new HashSet<>();
-        roles.add(new Role(RoleEnum.USER));
-        v.setRoles(roles);
         visitorRepo.save(v);
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody Credentials credentials) throws EncoderException {
+    public String login(@RequestBody Credentials credentials) {
         Visitor v = visitorRepo.findByEmail( credentials.getEmail() ).orElse(null);
         if (v != null) {
             String passwordEncoded = securityUtils.encryptPassword( credentials.getPassword() );
-            if (v.getPassword().equals(passwordEncoded)) {
+            if (BCrypt.checkpw(credentials.getPassword(),passwordEncoded)) {
                 return securityUtils.createToken(v);
             }
         }

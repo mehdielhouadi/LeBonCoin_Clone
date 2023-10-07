@@ -3,6 +3,7 @@ package com.Clone.LeBonCoin.Controller;
 import com.Clone.LeBonCoin.Entity.SecurityUtils;
 import com.Clone.LeBonCoin.Entity.Visitor;
 import com.Clone.LeBonCoin.Repository.AnnouncementRepo;
+import com.Clone.LeBonCoin.Repository.RoleRepo;
 import com.Clone.LeBonCoin.Repository.VisitorRepo;
 import com.Clone.LeBonCoin.Service.VisitorService;
 import jakarta.websocket.server.PathParam;
@@ -12,9 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Set;
-
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
@@ -22,6 +20,8 @@ public class AdminController {
     VisitorRepo vRepo;
     VisitorService vService;
     AnnouncementRepo aRepo;
+    @Autowired
+    RoleRepo rRepo;
     @Autowired
     public AdminController(SecurityUtils sUtils, VisitorRepo vRepo, VisitorService vService, AnnouncementRepo aRepo){
         this.sUtils = sUtils;
@@ -31,37 +31,31 @@ public class AdminController {
     }
 
 
-    @GetMapping("/getUsers")
-    public ResponseEntity<Page<Visitor>> getAllUsers(@RequestHeader (name="Authorization") String token,
-                                                     int nbOccurrences, int pageNb){
+    @GetMapping("/{nbOcc}")
+    public Page<Visitor> getAllUsers(@PathVariable("nbOcc") int nbOccurrences,@RequestParam("page") int pageNb){
 
-        return new ResponseEntity<>(vService.usersPage(nbOccurrences,pageNb), HttpStatus.OK);
+        Page<Visitor> page = vService.usersPage(nbOccurrences,pageNb);
+        for (Visitor v : page) {
+            v.getRoles().addAll( rRepo.findRoleByUserId(v.getId()));
+        }
+        return page;
     }
 
     @PostMapping("/addAdmin")
-    public ResponseEntity<HttpStatus> AddAdmin(@RequestHeader (name="Authorization") String token,
-                                               @RequestBody Visitor admin) {
-        if (sUtils.isAdminToken(token)){
-            vService.makeAdmin(admin);
+    public ResponseEntity<HttpStatus> AddAdmin(@RequestBody Visitor admin) {
             vRepo.save(admin);
             return new ResponseEntity<>(HttpStatus.OK);
-        }
-        else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
     }
 
     @DeleteMapping("/deleteUser/{id}")
-    public ResponseEntity<HttpStatus> deleteUser(@RequestHeader (name="Authorization") String token,
-                                                 @PathParam("{id}")int id)
+    public ResponseEntity<HttpStatus> deleteUser(@PathParam("{id}") int id)
     {
         vRepo.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/deletePost/{id}")
-    public ResponseEntity<HttpStatus> deleteAnnouncement(@RequestHeader (name="Authorization") String token,
-                                                         @RequestParam int id)
+    public ResponseEntity<HttpStatus> deleteAnnouncement(@PathParam("{id}") int id)
     {
         aRepo.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);

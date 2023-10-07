@@ -1,9 +1,10 @@
 package com.Clone.LeBonCoin.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Cascade;
 
 import java.util.HashSet;
@@ -16,13 +17,16 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    @Enumerated(EnumType.STRING)
-    private RoleEnum role;
 
-    @ManyToMany(mappedBy = "roles", cascade = CascadeType.ALL)   // unecessary but usefull to get liste of admins or regular users
+    private String role;
+
+    @ManyToMany(mappedBy = "roles")   // unecessary but usefull to get liste of admins or regular users
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private Set<Visitor> visitors;
 
-    public Role(RoleEnum role){
+    public Role(String role){
         this.role = role;
         visitors = new HashSet<>();
     }

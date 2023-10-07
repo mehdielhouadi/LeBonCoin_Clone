@@ -3,7 +3,8 @@ package com.Clone.LeBonCoin.Entity;
 import com.Clone.LeBonCoin.Repository.VisitorRepo;
 import com.Clone.LeBonCoin.Service.VisitorService;
 import io.jsonwebtoken.*;
-import org.apache.commons.codec.EncoderException;
+
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,81 +13,75 @@ import java.util.Date;
 
 @Component
 public class SecurityUtils {
-    private Encoder encoder;
     private VisitorRepo visitorRepo;
     private VisitorService visitorService;
     @Autowired
-    public SecurityUtils(Encoder encoder, VisitorRepo visitorRepo, VisitorService visitorService){
-        this.encoder = encoder;
+    public SecurityUtils(VisitorRepo visitorRepo, VisitorService visitorService){
         this.visitorRepo = visitorRepo;
         this.visitorService = visitorService;
     }
     String TOKEN_KEY = "secret_token";
     Long EXPIRATION_DATE = (long) 60*60*1000; // 1 hour
-
-    public String encryptPassword(String password) throws EncoderException {
-        return encoder.getEncoder().encode(password.getBytes(StandardCharsets.UTF_8)).toString();
+    public String encryptPassword(String password) {
+        return BCrypt.hashpw(password, BCrypt.gensalt(12));
     }
-
-    public String createToken(Visitor v) {
+    public Visitor getUserByCredentials(Credentials credential) {
+        return visitorRepo.findByEmail(credential.getEmail()).orElse(null);
+    }
+    public String createToken(Visitor user) {
         return Jwts.builder()
-                .setSubject( v.getEmail() )
-                .setIssuer("M2i")
-                .setIssuedAt(new Date())
-                .setExpiration(new Date( System.currentTimeMillis() +  EXPIRATION_DATE  ))
-                .signWith( SignatureAlgorithm.HS512 , TOKEN_KEY)
+                .setSubject( user.getEmail())
+                .setIssuer("C'est moi")
+                .setIssuedAt( new Date() )
+                .setExpiration( new Date( System.currentTimeMillis() + EXPIRATION_DATE))
+                .signWith( SignatureAlgorithm.HS512, TOKEN_KEY )
                 .compact();
     }
-
-    public boolean isValidToken(String token) {
-        String[] tokenSplited = token.split(" ");
+    public boolean isValidToken(String bearerToken) {
         try {
-            if (tokenSplited[0].equals("Bearer") ) {
-                Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(tokenSplited[1]);
-                return true;
-            }
-
-        } catch (ExpiredJwtException e) {
-            System.out.println("JWT Expired");
-        } catch (UnsupportedJwtException e) {
-            System.out.println("JWT Unsupported");
-        } catch (MalformedJwtException e) {
-            System.out.println("JWT is invalid");
-        } catch (SignatureException e) {
-            System.out.println("JWT Signature validation failed");
-        } catch ( IllegalArgumentException e) {
-            System.out.println("JWT is Null, empty, contain space");
-        }
-        return false;
-    }
-
-    public boolean visitorInDb(String token) {
-        String email = getSubject(token);
-        Visitor v = visitorRepo.findByEmail(email).orElse(null);
-        if (v == null) {
-            return false;
-        } else {
+            String token = getTokenFromBearerToken(bearerToken);
+            Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(token);
             return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
+    public String getTokenFromBearerToken(String bearerToken) throws Exception {
 
-    public String getSubject(String token) {
-        return parseClaims(token.split(" ")[1]).getSubject();
+        if ( bearerToken.startsWith("Bearer ") ) {
+            return bearerToken.split(" ")[1];
+        }
+        throw new Exception("INVALID TOKEN");
     }
-
+    public Visitor getUserFromToken(String bearerToken) {
+        try {
+            String token = getTokenFromBearerToken(bearerToken);
+            String email = getSubject(token);
+            Visitor user = visitorRepo.findByEmail(email).orElseThrow();
+            return user;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public String getSubject(String token) {
+        return parseClaims(token).getSubject();
+    }
     public Claims parseClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(TOKEN_KEY)
                 .parseClaimsJws(token)
                 .getBody();
     }
-
-    public boolean isAdminToken(String token) {
-        if(isValidToken(token)) {
-            if (visitorService.isAdmin(visitorRepo.findByEmail(getSubject(token)).orElseThrow())) {
-                return true;
-            }
+    public boolean canAccess(String bearerToken, String role) {
+        String token;
+        try {
+            token = getTokenFromBearerToken(bearerToken);
+            String email = getSubject(token);
+            return visitorRepo.findRoleByEmailAndType(email, role).isPresent();
+        } catch (Exception e) {
+            return false;
         }
-        return false;
     }
 }
