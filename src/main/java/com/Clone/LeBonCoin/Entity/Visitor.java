@@ -1,12 +1,12 @@
 package com.Clone.LeBonCoin.Entity;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Cascade;
 
+import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -16,7 +16,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Data
 public class Visitor {
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String pseudo;
     private String firstName;

@@ -1,10 +1,10 @@
 package com.Clone.LeBonCoin.Entity;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
 import java.util.Set;
 
 @Entity
@@ -12,7 +12,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Data
 public class Announcement {
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String title;
     private float price;

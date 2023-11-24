@@ -3,10 +3,10 @@ package com.Clone.LeBonCoin.Entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Cascade;
 
+import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 

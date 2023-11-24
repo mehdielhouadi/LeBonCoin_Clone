@@ -14,5 +14,4 @@ public class LeBonCoinApplication {
 		SpringApplication.run(LeBonCoinApplication.class, args);
 	}
 
-
 }

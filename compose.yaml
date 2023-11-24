@@ -1,0 +1,26 @@
+services:
+  postgresdb:
+    container_name: postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - 127.0.0.1:5432:5432
+    networks:
+      - myappnetwork
+  my-app:
+    container_name: myapp
+    image: my-app
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - 127.0.0.1:8080:8080
+    networks:
+      - myappnetwork
+volumes:
+  postgres:
+networks:
+  myappnetwork:

@@ -6,12 +6,12 @@ import com.Clone.LeBonCoin.Repository.AnnouncementRepo;
 import com.Clone.LeBonCoin.Repository.RoleRepo;
 import com.Clone.LeBonCoin.Repository.VisitorRepo;
 import com.Clone.LeBonCoin.Service.VisitorService;
-import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import javax.websocket.server.PathParam;
 
 @RestController
 @RequestMapping("/admin")
